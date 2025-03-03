@@ -24,9 +24,9 @@ namespace VotingBlockchain
                 return false;
 
             if (users.Any(u => u.Id == userId))
-                return false; // User already exists
+                return false;
 
-            users.Add(new User(userId, password));
+            users.Add(User.NewUser(userId, password));
             SaveToFile();
             return true;
         }

@@ -52,7 +52,7 @@ namespace VotingBlockchain
 
         public string CalculateHash()
         {
-            string blockData = Index + Timestamp.ToString() + Nonce + Difficulty + PreviousHash + JsonSerializer.Serialize(Vote);
+            string blockData = Index + Timestamp + Nonce + Difficulty + PreviousHash + JsonSerializer.Serialize(Vote);
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(blockData));

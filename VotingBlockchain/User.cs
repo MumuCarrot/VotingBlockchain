@@ -13,27 +13,14 @@ namespace VotingBlockchain
         [JsonInclude]
         public string PasswordHash { get; set; } = "";
 
-        [JsonInclude]
-        public string PublicKey { get; private set; } = "";
-
-        private string PrivateKey { get; set; } = "";
-
         [JsonConstructor]
-        public User(string id, string passwordHash, string publicKey)
-            : this(id, passwordHash)
+        public User(string Id, string PasswordHash)
         {
-            PasswordHash = passwordHash;
-            PublicKey = publicKey;
-            PrivateKey = "";
+            this.Id = Id;
+            this.PasswordHash = PasswordHash;
         }
 
-        public User(string userId, string password)
-        {
-            Id = userId;
-            if (PasswordHash.Length == 0)
-                PasswordHash = HashPassword(password);
-            GenerateKeys(PublicKey == "");
-        }
+        public static User NewUser(string userId, string password) => new User(userId, HashPassword(password));
 
         private static string HashPassword(string password)
         {
@@ -42,22 +29,9 @@ namespace VotingBlockchain
             return Convert.ToBase64String(bytes);
         }
 
-        private void GenerateKeys(bool withPublic)
-        {
-            using RSA rsa = RSA.Create();
-            if (withPublic)
-                PublicKey = rsa.ToXmlString(false);
-            PrivateKey = rsa.ToXmlString(true);
-        }
-
         public bool ValidatePassword(string password)
         {
             return PasswordHash == HashPassword(password);
-        }
-
-        public string? TryDecryptVote(string encryptedVote)
-        {
-            return Vote.TryDecryptVote(encryptedVote, PrivateKey);
         }
     }
 }

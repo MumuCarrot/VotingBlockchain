@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using VotingBlockchain.Interfaces;
 
 namespace VotingBlockchain
@@ -14,7 +13,7 @@ namespace VotingBlockchain
         {
             Node = node;
             var lff = LoadFromFile();
-            if (lff is not null) 
+            if (lff is not null)
             {
                 Chain = lff;
             }
@@ -28,7 +27,7 @@ namespace VotingBlockchain
 
         public Block GetLatestBlock() => Chain[^1];
 
-        public bool IsNewBlockValid(Block newBlock)
+        public bool Validation(Block newBlock)
         {
             var newChain = new List<Block>(Chain);
             newChain[^1] = newBlock;
@@ -62,26 +61,26 @@ namespace VotingBlockchain
         {
             if (user is null) return;
 
-            Vote newVote = new Vote(user.Id, candidate, user.PublicKey);
-            
+            Vote newVote = new Vote(user.Id, candidate);
+
             var existingVote = Node.Mempool.DataMempool.FirstOrDefault(v => v.UserId == newVote.UserId);
 
             if (existingVote is not null)
-                existingVote.EncryptedData = newVote.EncryptedData;
+                existingVote.Candidate = newVote.Candidate;
             else
                 Node.Mempool.AddToDataMempool(newVote);
         }
 
-        public void EndVoting(User user) 
+        public void EndVoting(User user)
         {
-            var existingVote = Node.Mempool.DataMempool.FirstOrDefault(v => v.UserId == user.Id) ?? 
+            var existingVote = Node.Mempool.DataMempool.FirstOrDefault(v => v.UserId == user.Id) ??
                 throw new Exception("The user's vote was not found");
             Node.Mempool.AddToHashWaitingMempool(existingVote);
         }
 
-        public bool AddBlock(Block newBlock) 
+        public bool AddBlock(Block newBlock)
         {
-            if (!IsNewBlockValid(newBlock)) 
+            if (!Validation(newBlock))
                 return false;
             Console.WriteLine("Block valid");
 
@@ -106,11 +105,11 @@ namespace VotingBlockchain
         {
             if (user is null) return null;
 
-            foreach (var block in Chain) 
-            { 
+            foreach (var block in Chain)
+            {
                 if (block.Vote?.UserId == user.Id)
                 {
-                    return user.TryDecryptVote(block.Vote.EncryptedData);
+                    return block.Vote.Candidate;
                 }
             }
             return null;

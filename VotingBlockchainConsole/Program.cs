@@ -51,7 +51,10 @@ while (true)
                 break;
             case "3":
                 var res = fullNode.Blockchain.GetCurrentResults();
-                Console.WriteLine(res);
+                foreach (var result in res.Result) 
+                { 
+                    Console.WriteLine($"{result.Key}\t{result.Value}");
+                }
                 break;
             default:
                 Console.WriteLine("Нет такого варианта");

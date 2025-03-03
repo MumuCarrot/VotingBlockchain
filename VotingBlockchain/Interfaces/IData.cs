@@ -4,6 +4,6 @@
     {
         public string UserId { get; set; }
 
-        public string EncryptedData { get; set; }
+        public string Candidate { get; set; }
     }
 }
