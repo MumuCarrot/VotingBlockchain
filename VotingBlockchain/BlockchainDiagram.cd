@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="VotingBlockchain.FullNode">
+    <Position X="5.25" Y="3.75" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>FullNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.Abstract.ANode">
+    <Position X="5.25" Y="5.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAoA=</HashCode>
+      <FileName>Abstract\ANode.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Mempool" />
+      <Property Name="Blockchain" />
+      <Property Name="UserDatabase" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="VotingBlockchain.Miner">
+    <Position X="0.5" Y="3" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAEAAAAACAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Miner.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Node" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="VotingBlockchain.Mempool">
+    <Position X="8.5" Y="3.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAgJAAAAAAAAAAAAgAAAAAAAAAAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Mempool.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.Blockchain">
+    <Position X="8.5" Y="6.5" Width="2.75" />
+    <AssociationLine Name="Node" Type="VotingBlockchain.Interfaces.INode" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="8.5" Y="8.5" />
+        <Point X="4.281" Y="8.5" />
+        <Point X="4.281" Y="4.103" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>BAAAAAgiAAAAAAgAAAAAAAAAAAAAAAAAAIBUAAEAEAI=</HashCode>
+      <FileName>Blockchain.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Node" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="VotingBlockchain.UserDatabase">
+    <Position X="0.5" Y="5.25" Width="3" />
+    <TypeIdentifier>
+      <HashCode>IACAAAAgAAAAAAAAAAAAAAIAAAABAAAAAEBAAAAAEAA=</HashCode>
+      <FileName>UserDatabase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.User">
+    <Position X="0.5" Y="8.75" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AACCAAAAAQAEAAAAAAAAAAQAAAAQAACAAAAAAIAAAAA=</HashCode>
+      <FileName>User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.Block">
+    <Position X="6" Y="9" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAQAAAAACAAAAACAAAAAAACEAAABBCBA=</HashCode>
+      <FileName>Block.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Vote" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="VotingBlockchain.Vote">
+    <Position X="9.25" Y="11" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AACAAACAAAAAAAAAAAAAAAgAAAAAAACAAAAAAAAAABA=</HashCode>
+      <FileName>Vote.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="VotingBlockchain.FileEncryption">
+    <Position X="3.75" Y="9" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAQAAAABAAAAAAAAAAAAAAgAAAAAAAA=</HashCode>
+      <FileName>FileEncryption.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.VotingResults">
+    <Position X="0.5" Y="12" Width="3" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>VotingResult.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="VotingBlockchain.Abstract.AMiner">
+    <Position X="0.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAQQAAAAAAAACAAEAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Abstract\AMiner.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="VotingBlockchain.Interfaces.INode">
+    <Position X="3" Y="3" Width="2" />
+    <AssociationLine Name="Blockchain" Type="VotingBlockchain.Blockchain" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="4.672" Y="4.103" />
+        <Point X="4.672" Y="7.688" />
+        <Point X="8.5" Y="7.688" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAoA=</HashCode>
+      <FileName>Interfaces\INode.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="UserDatabase" />
+      <Property Name="Mempool" />
+      <Property Name="Blockchain" />
+    </ShowAsAssociation>
+  </Interface>
+  <Interface Name="VotingBlockchain.Interfaces.IMiner">
+    <Position X="3" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IMiner.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="VotingBlockchain.Interfaces.IBlock">
+    <Position X="6" Y="12.5" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAACAAAAAAAAAAAAACEAAABBCAA=</HashCode>
+      <FileName>Interfaces\IBlock.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="VotingBlockchain.Interfaces.IData">
+    <Position X="9.25" Y="13.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IData.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
