@@ -8,11 +8,11 @@
         {
             foreach (var block in chain) 
             {
-                if (block.Vote?.Candidate is not null) 
-                {
-                    if (!Result.TryAdd(block.Vote.Candidate, 1))
-                        Result[block.Vote.Candidate]++;
-                }
+                //if (block.Vote?.EncryptedData is not null) 
+                //{
+                //    if (!Result.TryAdd(block.Vote.EncryptedData, 1))
+                //        Result[block.Vote.EncryptedData]++;
+                //}
             }
         }
     }

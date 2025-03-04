@@ -9,10 +9,11 @@ namespace VotingBlockchain.Abstract
         public UserDatabase UserDatabase { get; }
 
         public ANode() 
-        { 
+        {
+            var dba = new DBAdapter();
             Blockchain = new Blockchain(this);
-            Mempool = new Mempool();
-            UserDatabase = new UserDatabase();
+            Mempool = new Mempool(dba);
+            UserDatabase = new UserDatabase(dba);
         }
 
         public abstract void HostServer();

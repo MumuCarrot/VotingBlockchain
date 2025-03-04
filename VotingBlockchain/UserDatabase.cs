@@ -1,57 +1,72 @@
-﻿using System.Text.Json;
+﻿#define DEBUG
+
+using Npgsql;
 using System.Text.RegularExpressions;
 
 namespace VotingBlockchain
 {
     public partial class UserDatabase
     {
-        private readonly List<User> users = new List<User>();
-        public List<User> UserList { get; } = [];
+        private readonly DBAdapter _adapter;
 
-        private const string FilePath = "users.bin";
-
-        [GeneratedRegex("^(?:[А-ЩЬЮЯҐЄІЇ]{2}\\d{6}|\\d{9})$")]
+        [GeneratedRegex(@"^(?:[А-ЩЬЮЯҐЄІЇ]{2}\d{6}|\d{9})$")]
         private static partial Regex UkrainianStandartPasspordRegex();
 
-        public UserDatabase()
+        public UserDatabase(DBAdapter adapter) 
         {
-            LoadFromFile();
+            _adapter = adapter;
         }
 
-        public bool Register(string userId, string password)
+        public async Task<List<string>?> RegisterAsync(string username, string password)
         {
-            if (!UkrainianStandartPasspordRegex().IsMatch(userId))
-                return false;
+            if (!UkrainianStandartPasspordRegex().IsMatch(username))
+                return null;
 
-            if (users.Any(u => u.Id == userId))
-                return false;
-
-            users.Add(User.NewUser(userId, password));
-            SaveToFile();
-            return true;
-        }
-
-        public User? Authenticate(string userId, string password)
-        {
-            return users.FirstOrDefault(u => u.Id == userId && u.ValidatePassword(password));
-        }
-
-        public void SaveToFile()
-        {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(users, options);
-            FileEncryption.EncryptToFile(FilePath, json);
-        }
-
-        private void LoadFromFile()
-        {
-            string decryptedJson = FileEncryption.DecryptFromFile(FilePath);
-            if (!string.IsNullOrEmpty(decryptedJson))
+            var temp = User.NewUser(username, password);
+            string query = "INSERT INTO users (username, password, publicKey) VALUES (@username, @password, @publicKey)";
+            var parameters = new Dictionary<string, object>
             {
-                var loadedUsers = JsonSerializer.Deserialize<List<User>>(decryptedJson);
-                if (loadedUsers != null)
-                    users.AddRange(loadedUsers);
-            }
+                { "username", temp.Username },
+                { "password", temp.PasswordHash },
+                { "publicKey", temp.PublicKey }
+            };
+            await _adapter.ExecuteNonQueryAsync(query, parameters);
+            
+            return [temp.PublicKey, temp.PrivateKey];
+        }
+
+        public async Task<User?> AuthenticateAsync(string username, string password)
+        {
+            string query = "SELECT * FROM users WHERE username = @username AND password = @password";
+            User temp = new User(username, password);
+            var parameters = new Dictionary<string, object>
+            {
+                { "username", temp.Username },
+                { "password", temp.PasswordHash }
+            };
+
+            var users = await _adapter.ExecuteQueryAsync(query, parameters);
+            if (!(users.Count > 0)) return null;
+
+            temp.Id = users[0]["id"].ToString()!;
+            temp.Username = users[0]["username"].ToString()!;
+            temp.PasswordHash = users[0]["password"].ToString()!;
+            temp.PublicKey = users[0]["publickey"].ToString()!;
+            temp.Role = int.Parse(users[0]["role"].ToString()!);
+
+            return temp;
+        }
+
+        public async Task<bool> UserExistAsync(string username)
+        {
+            string query = "SELECT COUNT(*) FROM users WHERE username = @username";
+            var parameters = new Dictionary<string, object>
+            {
+                { "username", username }
+            };
+            var result = await _adapter.ExecuteScalarAsync(query, parameters);
+
+            return Convert.ToInt32(result) > 0;
         }
     }
 }

@@ -1,26 +1,18 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json.Serialization;
-using VotingBlockchain.Interfaces;
-
-namespace VotingBlockchain
+﻿namespace VotingBlockchain
 {
-    public class Vote: IData
+    /// <summary>
+    /// Represents a vote.
+    /// </summary>
+    public class Vote
     {
-        [JsonInclude]
-        public string UserId { get; set; } = "";
+        /// <summary>
+        /// Gets or sets the data of the current voter.
+        /// </summary>
+        public string? EncryptedData { get; set; }
 
-        [JsonInclude]
-        public string Candidate { get; set; } = "";
-
-        [JsonConstructor]
-        public Vote(string userId, string candidate)
-        {
-            UserId = userId;
-            Candidate = candidate;
-        }
-
-        public object Clone() => new Vote(UserId, Candidate);
-
+        /// <summary>
+        /// Gets or sets remaining re-vote attempts for current voter.
+        /// </summary>
+        public int? RemainigRevoteAttempt { get; set; }
     }
 }
