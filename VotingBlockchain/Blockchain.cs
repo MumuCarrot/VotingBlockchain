@@ -1,5 +1,6 @@
 ﻿#define DEBUG
 
+using System.Text;
 using VotingBlockchain.Interfaces;
 
 namespace VotingBlockchain
@@ -54,14 +55,14 @@ namespace VotingBlockchain
             foreach (var d in dict) 
             {
                 var b = new Block(
-                    (int)dict[0]["index"],
-                    (int)dict[0]["electionid"],
-                    (long)dict[0]["timestamp"],
-                    (string)dict[0]["previoushash"],
-                    (string)dict[0]["thishash"],
-                    (int)dict[0]["nonce"],
-                    (int)dict[0]["difficulty"],
-                    (string)dict[0]["encrypteddata"]
+                    (int)d["index"],
+                    (int)d["electionid"],
+                    (long)d["timestamp"],
+                    (string)d["previoushash"],
+                    (string)d["thishash"],
+                    (int)d["nonce"],
+                    (int)d["difficulty"],
+                    (string)d["encrypteddata"]
                 );
                 temp.Add(b);
             }
@@ -205,6 +206,89 @@ namespace VotingBlockchain
                 { "encryptedData", block.EncryptedData }
             };
             await _adapter.ExecuteNonQueryAsync(query, parameters);
+        }
+
+        public async Task GetElectionResults(int electionId) 
+        {
+            var blockchain = await GetBlockChainAsync(electionId);
+            var options = await Node.Mempool.GetOptionsAsync(electionId);
+            var elections = await Node.Mempool.GetElectionsAsync();
+
+            if (blockchain is null || blockchain.Count <= 1) 
+            {
+                Console.WriteLine("Election is empty.");
+                return;
+            }
+
+            if (options is null || options.Count == 0)
+            {
+                Console.WriteLine("Can not upload options.");
+                return;
+            }
+
+            if (elections is null || elections.Count == 0)
+            {
+                Console.WriteLine("Can not upload elections.");
+                return;
+            }
+
+            // Key - Username | Value - Option
+            Dictionary<string, string> uniqueResults = new Dictionary<string, string>();
+
+            foreach (var result in blockchain) 
+            {
+                int lastUnderscore = result.EncryptedData.LastIndexOf("_");
+
+                if (lastUnderscore == -1) 
+                { 
+                    Console.WriteLine("Encrypted result uderscore not found.");
+                }
+
+                string before = result.EncryptedData.Substring(0, lastUnderscore);
+                string after = result.EncryptedData.Substring(lastUnderscore + 1);
+
+                if (after == "0") continue; // Skip genesis block
+
+                if (uniqueResults.ContainsKey(before))
+                {
+                    uniqueResults[before] = after;
+                }
+                else
+                {
+                    uniqueResults.Add(before, after);
+                }
+            }
+
+            Dictionary<string, int> resultsCounter = new Dictionary<string, int>();
+
+            foreach (var result in uniqueResults) 
+            {
+                if (resultsCounter.ContainsKey(result.Value))
+                    resultsCounter[result.Value]++;
+                else
+                    resultsCounter.Add(result.Value, 1);
+            }
+
+            try
+            {
+                using FileStream fs = new FileStream($"results_id{electionId}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.txt", FileMode.Create);
+                string? electionName = elections.Find(e => e.Id == electionId)?.Name;
+                electionName ??= "Unknown election";
+
+                var title = $"Results for {electionName}\n";
+                Console.Write(title);
+                fs.Write(Encoding.UTF8.GetBytes(title));
+                for (var i = 0; i < options.Count; i++)
+                {
+                    var line = $"{options[i].OptionText} - {(resultsCounter.ContainsKey((i + 1).ToString()) ? resultsCounter[(i + 1).ToString()] : "0")}\n";
+                    Console.Write(line);
+                    fs.Write(Encoding.UTF8.GetBytes(line));
+                }
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

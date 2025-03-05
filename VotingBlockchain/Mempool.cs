@@ -50,6 +50,7 @@ namespace VotingBlockchain
                     OptionText = (string)i["optiontext"]
                 });
             }
+            votes.Sort((o1, o2) => o1.Index.CompareTo(o2.Index));
             return votes;
         }
 

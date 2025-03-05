@@ -52,16 +52,18 @@ while (true)
         {
 
             Console.WriteLine("Action list:\n1. Vote\n2. My votes\n3. Results\n4. Log out");
+            var action = Console.ReadLine() ?? "";
 
-            switch (Console.ReadLine())
+            var elections = await fullNode.Mempool.GetElectionsAsync();
+            if (elections is null)
+            {
+                Console.WriteLine("Elections not found");
+                continue;
+            }
+
+            switch (action)
             {
                 case "1":
-                    var elections = await fullNode.Mempool.GetElectionsAsync();
-                    if (elections is null)
-                    {
-                        Console.WriteLine("Elections not found");
-                        continue;
-                    }
                     foreach (var election in elections)
                         Console.WriteLine("ID: " + election.Id + " Name: " + election.Name + " Start day: " + election.StartDate + " End day: " + election.EndDate);
                     Console.Write("\nChoose one: ");
@@ -79,7 +81,6 @@ while (true)
                             Console.WriteLine("Options not found");
                             continue;
                         }
-                        options.Sort((o1, o2) => o1.Index.CompareTo(o2.Index));
                         for (var i = 0; i < options.Count; i++)
                             Console.WriteLine((i + 1) + ". " + options[i].OptionText);
 
@@ -103,7 +104,25 @@ while (true)
                     //2
                     break;
                 case "3":
-                    //3
+                    foreach (var election in elections)
+                        Console.WriteLine("ID: " + election.Id + " Name: " + election.Name + " Start day: " + election.StartDate + " End day: " + election.EndDate);
+                    Console.Write("\nChoose one: ");
+                    try
+                    {
+                        var indexOfElection = int.Parse(Console.ReadLine() ?? "") - 1;
+
+                        if (indexOfElection < 0 || indexOfElection >= elections.Count) throw new ArgumentException();
+
+                        await fullNode.Blockchain.GetElectionResults(elections[indexOfElection].Id);
+                    }
+                    catch (ArgumentException)
+                    {
+                        Console.WriteLine("No option like this");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error: " + ex.Message);
+                    }
                     break;
                 case "4":
                     logedIn = false;
