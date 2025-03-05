@@ -4,7 +4,7 @@ namespace VotingBlockchain.Abstract
 {
     public abstract class AMiner : IMiner
     {
-        protected Thread? minerThread;
+        protected Task? minerThread;
         protected readonly object lockObject = new();
         protected bool isMining;
 

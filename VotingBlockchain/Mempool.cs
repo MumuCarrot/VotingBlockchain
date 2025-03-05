@@ -1,16 +1,16 @@
-﻿using VotingBlockchain.Interfaces;
+﻿using System;
 
 namespace VotingBlockchain
 {
     public class Mempool
     {
         private readonly DBAdapter _adapter;
-        public Mempool(DBAdapter adapter) 
+        public Mempool(DBAdapter adapter)
         {
             _adapter = adapter;
         }
 
-        public async Task<List<Election>?> GetElectionsAsync() 
+        public async Task<List<Election>?> GetElectionsAsync()
         {
             string query = "SELECT * FROM elections";
             var dict = await _adapter.ExecuteQueryAsync(query);
@@ -18,11 +18,11 @@ namespace VotingBlockchain
             if (dict is null || dict.Count == 0) return null;
 
             var elections = new List<Election>();
-            foreach (var i in dict) 
+            foreach (var i in dict)
             {
                 elections.Add(new Election()
                 {
-                    Index = (int)i["id"],
+                    Id = (int)i["id"],
                     Name = (string)i["name"],
                     StartDate = (long)i["startdate"],
                     EndDate = (long)i["enddate"]
@@ -34,9 +34,9 @@ namespace VotingBlockchain
         public async Task<List<Option>?> GetOptionsAsync(int id)
         {
             string query = "SELECT * FROM options WHERE electionid = @id";
-            var parameters = new Dictionary<string, object>() 
-            { 
-                { "id", id } 
+            var parameters = new Dictionary<string, object>()
+            {
+                { "id", id }
             };
             var dict = await _adapter.ExecuteQueryAsync(query, parameters);
             if (dict is null || dict.Count == 0) return null;
@@ -46,52 +46,38 @@ namespace VotingBlockchain
                 votes.Add(new Option()
                 {
                     Index = (int)i["id"],
-                    ElectionIndex = (int)i["electionid"],
+                    ElectionId = (int)i["electionid"],
                     OptionText = (string)i["optiontext"]
                 });
             }
             return votes;
         }
 
-        private readonly List<IData> _inputMempool = [];
-        private readonly List<IData> _outputMempool = [];
+        private readonly List<Block> _inputMempool = [];
 
-        public void AddToInputMempool(IData data) 
+        public void AddToInputMempool(Block data)
         {
             if (_inputMempool.Contains(data)) return;
             _inputMempool.Add(data);
         }
 
-        public void AddToOutputMempool(IData data)
-        {
-            if (_outputMempool.Contains(data)) return;
-            _outputMempool.Add(data);
-        }
-
-        public IData? GetInputData()
+        public Block? GetInputData()
         {
             if (_inputMempool.Count == 0) return null;
-            IData data = _inputMempool[0].Clone() as IData ?? throw new Exception("Can not clone block!");
+            Block data = _inputMempool[0];
             return data;
         }
 
-        public IData? GetOutputData()
+        public bool RemoveFromInputMempool(Block data)
         {
-            if (_outputMempool.Count == 0) return null;
-            IData data = _outputMempool[0].Clone() as IData ?? throw new Exception("Can not clone block!");
-            return data;
-        }
+            if (_inputMempool.Count == 0) return false;
 
-        public void RemoveFromInputMempool(IData data)
-        {
-            if (_inputMempool.Count == 0) return;
-            _inputMempool.Remove(data);
-        }
+            var blockToRemove = _inputMempool.FirstOrDefault(b => b.ElectionId == data.ElectionId && b.Index == data.Index);
 
-        public void RemoveFromOutputMempool(IData data)
-        {
-            if (_outputMempool.Count == 0) return;
-            _outputMempool.Remove(data);
+            if (blockToRemove is null) return false;
+            _inputMempool.Remove(blockToRemove);
+
+            return true;
         }
     }
 }

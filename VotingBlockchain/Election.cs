@@ -2,7 +2,7 @@
 {
     public class Election
     {
-        public int Index { get; set; } = -1;
+        public int Id { get; set; } = -1;
 
         public string Name { get; set; } = "";
         

@@ -1,6 +1,5 @@
-﻿//#define DEBUG
+﻿#define DEBUG
 
-using System.Text.Json;
 using System.Text;
 using System.Security.Cryptography;
 using VotingBlockchain.Abstract;
@@ -19,28 +18,22 @@ namespace VotingBlockchain
 
         public override void Mine() 
         {
-            /*if (minerThread == null || !minerThread.IsAlive)
+            if (minerThread == null || minerThread.IsCompleted)
             {
                 isMining = true;
-                minerThread = new Thread(new ThreadStart(() =>
+                minerThread = new Task(async () =>
                 {
                     while (isMining)
                     {
                         try
                         {
-                            var data = Node.Mempool.GetHashWaitingData();
-                            if (data is Vote vote)
-                            {
-                                var lastBlock = Node.Blockchain.GetLatestBlock().Clone() as Block;
+                            var data = Node.Mempool.GetInputData();
 
-                                if (lastBlock is null) return;
+                            if (data is not null) 
+                            { 
+                                data = SearchHash(data);
 
-                                lastBlock.Vote = vote;
-                                lastBlock = SearchHash(lastBlock) as Block;
-
-                                if (lastBlock is null) return;
-
-                                Node.Blockchain.AddBlock(lastBlock);
+                                await Node.Blockchain.AddBlockAsync(data);
                             }
                         }
                         catch (Exception ex)
@@ -48,20 +41,17 @@ namespace VotingBlockchain
                             throw new Exception($"Mining error: {ex.Message}");
                         }
 
-                        Thread.Sleep(5000);
+                        await Task.Delay(5000);
                     }
-                }))
-                {
-                    IsBackground = true
-                };
+                });
                 minerThread.Start();
-            }*/
+            }
         }
 
         public override void Rest() 
         {
             isMining = false;
-            minerThread?.Join();
+            minerThread?.Wait();
         }
 
         public Block SearchHash(Block block)
@@ -69,7 +59,7 @@ namespace VotingBlockchain
             string hash = new string('1', block.Difficulty);
             while (hash[..block.Difficulty] != new string('0', block.Difficulty))
             {
-                string blockData = block.Index + block.Timestamp.ToString() + block.Nonce + block.Difficulty + block.PreviousHash + JsonSerializer.Serialize(block.Stamp);
+                string blockData = block.Index + block.ElectionId + block.Timestamp.ToString() + block.Nonce + block.Difficulty + block.PreviousHash + block.EncryptedData;
                 using (SHA256 sha256 = SHA256.Create())
                 {
                     byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(blockData));

@@ -1,60 +1,87 @@
-﻿using System.Text.Json;
+﻿using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json.Serialization;
-using VotingBlockchain.Interfaces;
-using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace VotingBlockchain
 {
     public class Block
     {
-        [JsonInclude]
         public int Index { get; set; } = -1;
 
-        [JsonInclude]
-        public int ElectionIndex { get; set; } = -1;
+        public int ElectionId { get; set; } = -1;
 
-        [JsonInclude]
         public long Timestamp { get; set; } = 0;
 
-        [JsonInclude]
         public string PreviousHash { get; set; } = "";
 
-        [JsonInclude]
         public string ThisHash { get; set; } = "";
 
-        [JsonInclude]
         public int Nonce { get; set; } = 0;
 
-        [JsonInclude]
         public int Difficulty { get; set; } = 3;
 
-        [JsonInclude]
-        public List<Vote>? Stamp { get; set; } = null;
+        public string EncryptedData { get; set; } = "";
 
-        public Block(int index, string previousHash, string? jsonStamp)
+        public Block(int index, int electionId, long timestamp, string previousHash, string thisHash, int nonce, int difficulty, string encryptedData) 
         {
             Index = index;
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            ElectionId = electionId;
+            Timestamp = timestamp;
             PreviousHash = previousHash;
-            if (jsonStamp is not null)
-                try 
-                { 
-                    JsonSerializer.Deserialize<List<Vote>>(jsonStamp);
-                }
-                catch
-                {
-                    Console.WriteLine($"Election id: {ElectionIndex} | Stamp json may be empty when deserialization is attempted, allocate new memory...");
-                    Stamp = [];
-                }
-            else Stamp = [];
+            ThisHash = thisHash;
+            Nonce = nonce;
+            Difficulty = difficulty;
+            EncryptedData = encryptedData;
         }
 
-        public static Block CreateGenesisBlock() => new Block(0, "0", null);
+        public Block(int index, int electionId, string previousHash, string user, string option, string publicKey)
+            : this(user, option, publicKey)
+        {
+            Index = index;
+            PreviousHash = previousHash;
+            ElectionId = electionId;
+        }
+
+        public Block(string user, string option, string publicKey)
+        {
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            EncryptedData = EncryptVote(user, publicKey) + "_" + option;
+        }
+
+        protected static string EncryptVote(string data, string publicKey)
+        {
+            using RSA rsa = RSA.Create();
+            rsa.KeySize = 2048;
+            rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKey), out _);
+            byte[] encryptedData = rsa.Encrypt(Encoding.UTF8.GetBytes(data), RSAEncryptionPadding.OaepSHA256);
+            return Convert.ToBase64String(encryptedData);
+        }
+
+        public static string? TryDecryptVote(string encryptedData, string privateKey)
+        {
+            try
+            {
+                using RSA rsa = RSA.Create();
+                rsa.FromXmlString(privateKey);
+                byte[] decryptedData = rsa.Decrypt(Convert.FromBase64String(encryptedData), RSAEncryptionPadding.OaepSHA256);
+                return Encoding.UTF8.GetString(decryptedData);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static Block CreateGenesisBlock(int electionId)
+        {
+            var b = new Block(0, electionId, "0", "0", "0", "0");
+            b.ThisHash = b.CalculateHash();
+            return b;
+        }
 
         public string CalculateHash()
         {
-            string blockData = Index + Timestamp.ToString() + Nonce + Difficulty + PreviousHash + JsonSerializer.Serialize(Stamp);
+            string blockData = Index + ElectionId + Timestamp.ToString() + Nonce + Difficulty + PreviousHash + EncryptedData;
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(blockData));
