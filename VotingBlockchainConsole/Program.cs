@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using VotingBlockchain;
+using static System.Collections.Specialized.BitVector32;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
@@ -64,8 +65,10 @@ while (true)
             switch (action)
             {
                 case "1":
-                    foreach (var election in elections)
-                        Console.WriteLine("ID: " + election.Id + " Name: " + election.Name + " Start day: " + election.StartDate + " End day: " + election.EndDate);
+                    for (var i = 0; i < elections.Count; i++)
+                    {
+                        Console.WriteLine((i + 1) + "." + " Name: " + elections[i].Name + " Start day: " + elections[i].StartDate + " End day: " + elections[i].EndDate);
+                    }
                     Console.Write("\nChoose one: ");
                     try
                     {
@@ -101,11 +104,39 @@ while (true)
                     }
                     break;
                 case "2":
-                    //2
+                    for (var i = 0; i < elections.Count; i++)
+                    {
+                        Console.WriteLine((i + 1) + "." + " Name: " + elections[i].Name + " Start day: " + elections[i].StartDate + " End day: " + elections[i].EndDate);
+                    }
+                    Console.Write("\nChoose one: ");
+                    try
+                    {
+                        var indexOfElection = int.Parse(Console.ReadLine() ?? "") - 1;
+                        if (indexOfElection < 0 || indexOfElection >= elections.Count) throw new ArgumentException();
+
+                        Console.Write("Enter your private key: ");
+                        var privateKey = Console.ReadLine() ?? "";
+
+                        var option = await fullNode.Blockchain.GetUserVoteAsync(user, elections[indexOfElection].Id, privateKey);
+                        
+                        if (option is null) throw new Exception("Option not found");
+
+                        Console.WriteLine($"Election name: {elections[indexOfElection].Name}\nYour option: {option.OptionText}");
+                    }
+                    catch (ArgumentException)
+                    {
+                        Console.WriteLine("No option like this");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error: " + ex.Message);
+                    }
                     break;
                 case "3":
-                    foreach (var election in elections)
-                        Console.WriteLine("ID: " + election.Id + " Name: " + election.Name + " Start day: " + election.StartDate + " End day: " + election.EndDate);
+                    for (var i = 0; i < elections.Count; i++)
+                    {
+                        Console.WriteLine((i + 1) + "." + " Name: " + elections[i].Name + " Start day: " + elections[i].StartDate + " End day: " + elections[i].EndDate);
+                    }
                     Console.Write("\nChoose one: ");
                     try
                     {

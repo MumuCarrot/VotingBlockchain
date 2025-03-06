@@ -59,7 +59,7 @@ namespace VotingBlockchain
             string hash = new string('1', block.Difficulty);
             while (hash[..block.Difficulty] != new string('0', block.Difficulty))
             {
-                string blockData = block.Index + block.ElectionId + block.Timestamp.ToString() + block.Nonce + block.Difficulty + block.PreviousHash + block.EncryptedData;
+                string blockData = block.Index + block.ElectionId + block.Timestamp.ToString() + block.Nonce + block.Difficulty + block.PreviousHash + block.EncryptedData + block.PublicData;
                 using (SHA256 sha256 = SHA256.Create())
                 {
                     byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(blockData));

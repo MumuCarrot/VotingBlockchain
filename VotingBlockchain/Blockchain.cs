@@ -15,14 +15,15 @@ namespace VotingBlockchain
         {
             _adapter = adapter;
             Node = node;
+            var b = Block.CreateGenesisBlock(2);
         }
 
         public async Task<Block?> GetLatestBlockAsync(int electionId) 
         { 
-            string query = "SELECT * FROM blockChainVotes WHERE electionId = @electionId ORDER BY id DESC LIMIT 1;";
+            string query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id ORDER BY id DESC LIMIT 1;";
             var parameters = new Dictionary<string, object>()
             {
-                { "electionId", electionId }
+                { "election_id", electionId }
             };
             
             var dict = await _adapter.ExecuteQueryAsync(query, parameters);
@@ -30,22 +31,27 @@ namespace VotingBlockchain
 
             return new Block(
                 (int)dict[0]["index"],
-                (int)dict[0]["electionid"],
+                (int)dict[0]["election_id"],
                 (long)dict[0]["timestamp"],
-                (string)dict[0]["previoushash"],
-                (string)dict[0]["thishash"],
+                (string)dict[0]["previous_hash"],
+                (string)dict[0]["this_hash"],
                 (int)dict[0]["nonce"],
                 (int)dict[0]["difficulty"],
-                (string)dict[0]["encrypteddata"]
+                (string)dict[0]["encrypted_data"],
+                (string)dict[0]["public_data"]
             );
         }
 
-        public async Task<List<Block>?> GetBlockChainAsync(int electionId) 
-        { 
-            string query = "SELECT * FROM blockChainVotes WHERE electionId = @electionId";
+        public async Task<List<Block>?> GetBlockChainAsync(int electionId, bool isDesc = false) 
+        {
+            string query = "";
+            if (!isDesc)
+                query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id;";
+            else
+                query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id ORDER BY id DESC;";
             var parameters = new Dictionary<string, object>()
             {
-                { "electionId", electionId }
+                { "election_id", electionId }
             };
 
             var dict = await _adapter.ExecuteQueryAsync(query, parameters);
@@ -56,17 +62,46 @@ namespace VotingBlockchain
             {
                 var b = new Block(
                     (int)d["index"],
-                    (int)d["electionid"],
+                    (int)d["election_id"],
                     (long)d["timestamp"],
-                    (string)d["previoushash"],
-                    (string)d["thishash"],
+                    (string)d["previous_hash"],
+                    (string)d["this_hash"],
                     (int)d["nonce"],
                     (int)d["difficulty"],
-                    (string)d["encrypteddata"]
+                    (string)d["encrypted_data"],
+                    (string)d["public_data"]
                 );
                 temp.Add(b);
             }
             return temp;
+        }
+
+        public async Task<Option?> GetUserVoteAsync(User user, int electionId, string privateKey)
+        {
+            var blockchain = await GetBlockChainAsync(electionId, isDesc: true);
+            var options = await Node.Mempool.GetOptionsAsync(electionId);
+
+            if (blockchain is null || blockchain.Count <= 1) return null;
+            if (options is null || options.Count <= 1) return null;
+
+            foreach (var b in blockchain) 
+            {
+                var s = Block.TryDecryptVote(b.EncryptedData, privateKey);
+                if (s is not null && s.Equals(user.Username))
+                {
+                    var index = int.Parse(b.PublicData);
+                    Option option = new Option()
+                    {
+                        OptionText = options[index - 1].OptionText,
+                        Index = options[index - 1].Index,
+                        ElectionId = options[index - 1].ElectionId
+                    };
+
+                    return option;
+                }
+            }
+
+            return null;
         }
 
         public async Task<bool> ValidateBlockAsync(Block? block)
@@ -192,18 +227,19 @@ namespace VotingBlockchain
 
             if (!Node.Mempool.RemoveFromInputMempool(block)) return;
 
-            string query = "INSERT INTO blockChainVotes (electionId, index, timestamp, previousHash, thisHash, nonce, difficulty, encryptedData) " +
-                           "VALUES (@electionId, @index, @timestamp, @previousHash, @thisHash, @nonce, @difficulty, @encryptedData)";
+            string query = "INSERT INTO block_chain_votes (election_id, index, timestamp, previous_hash, this_hash, nonce, difficulty, encrypted_data, public_data) " +
+                           "VALUES (@election_id, @index, @timestamp, @previous_hash, @this_hash, @nonce, @difficulty, @encrypted_data, @public_data);";
             var parameters = new Dictionary<string, object>()
             {
-                { "electionId", block.ElectionId },
+                { "election_id", block.ElectionId },
                 { "index", block.Index },
                 { "timestamp", block.Timestamp },
-                { "previousHash", block.PreviousHash },
-                { "thisHash", block.ThisHash },
+                { "previous_hash", block.PreviousHash },
+                { "this_hash", block.ThisHash },
                 { "nonce", block.Nonce },
                 { "difficulty", block.Difficulty },
-                { "encryptedData", block.EncryptedData }
+                { "encrypted_data", block.EncryptedData },
+                { "public_data", block.PublicData }
             };
             await _adapter.ExecuteNonQueryAsync(query, parameters);
         }
@@ -233,40 +269,30 @@ namespace VotingBlockchain
             }
 
             // Key - Username | Value - Option
-            Dictionary<string, string> uniqueResults = new Dictionary<string, string>();
+            var uniqueResults = new Dictionary<string, string>();
 
             foreach (var result in blockchain) 
             {
-                int lastUnderscore = result.EncryptedData.LastIndexOf("_");
+                if (result.Index == 0) continue; // Skip genesis block
 
-                if (lastUnderscore == -1) 
-                { 
-                    Console.WriteLine("Encrypted result uderscore not found.");
-                }
-
-                string before = result.EncryptedData.Substring(0, lastUnderscore);
-                string after = result.EncryptedData.Substring(lastUnderscore + 1);
-
-                if (after == "0") continue; // Skip genesis block
-
-                if (uniqueResults.ContainsKey(before))
+                if (!uniqueResults.TryAdd(result.EncryptedData, result.PublicData))
                 {
-                    uniqueResults[before] = after;
-                }
-                else
-                {
-                    uniqueResults.Add(before, after);
+                    uniqueResults[result.EncryptedData] = result.PublicData;
                 }
             }
 
-            Dictionary<string, int> resultsCounter = new Dictionary<string, int>();
+            var resultsCounter = new Dictionary<string, int>();
 
             foreach (var result in uniqueResults) 
             {
                 if (resultsCounter.ContainsKey(result.Value))
+                {
                     resultsCounter[result.Value]++;
-                else
+                }
+                else 
+                { 
                     resultsCounter.Add(result.Value, 1);
+                }
             }
 
             try

@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.Json;
 
 namespace VotingBlockchain
 {
@@ -22,7 +22,9 @@ namespace VotingBlockchain
 
         public string EncryptedData { get; set; } = "";
 
-        public Block(int index, int electionId, long timestamp, string previousHash, string thisHash, int nonce, int difficulty, string encryptedData) 
+        public string PublicData { get; set; } = "";
+
+        public Block(int index, int electionId, long timestamp, string previousHash, string thisHash, int nonce, int difficulty, string encryptedData, string publicData)
         {
             Index = index;
             ElectionId = electionId;
@@ -32,6 +34,7 @@ namespace VotingBlockchain
             Nonce = nonce;
             Difficulty = difficulty;
             EncryptedData = encryptedData;
+            PublicData = publicData;
         }
 
         public Block(int index, int electionId, string previousHash, string user, string option, string publicKey)
@@ -45,7 +48,8 @@ namespace VotingBlockchain
         public Block(string user, string option, string publicKey)
         {
             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            EncryptedData = EncryptVote(user, publicKey) + "_" + option;
+            EncryptedData = EncryptVote(user, publicKey);
+            PublicData = option;
         }
 
         protected static string EncryptVote(string data, string publicKey)
@@ -62,7 +66,8 @@ namespace VotingBlockchain
             try
             {
                 using RSA rsa = RSA.Create();
-                rsa.FromXmlString(privateKey);
+                rsa.KeySize = 2048;
+                rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
                 byte[] decryptedData = rsa.Decrypt(Convert.FromBase64String(encryptedData), RSAEncryptionPadding.OaepSHA256);
                 return Encoding.UTF8.GetString(decryptedData);
             }
@@ -74,14 +79,14 @@ namespace VotingBlockchain
 
         public static Block CreateGenesisBlock(int electionId)
         {
-            var b = new Block(0, electionId, "0", "0", "0", "0");
+            var b = new Block(0, electionId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), "000000000000000000", "0", 0, 0, "0", "0");
             b.ThisHash = b.CalculateHash();
             return b;
         }
 
         public string CalculateHash()
         {
-            string blockData = Index + ElectionId + Timestamp.ToString() + Nonce + Difficulty + PreviousHash + EncryptedData;
+            string blockData = Index + ElectionId + Timestamp.ToString() + Nonce + Difficulty + PreviousHash + EncryptedData + PublicData;
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(blockData));
