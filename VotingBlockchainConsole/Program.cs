@@ -1,11 +1,12 @@
 ﻿using System.Text;
 using VotingBlockchain;
-using static System.Collections.Specialized.BitVector32;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
 
 FullNode fullNode = new FullNode();
+fullNode.SetOutput(Console.WriteLine);
+
 Miner miner = new Miner(fullNode);
 
 fullNode.HostServer();

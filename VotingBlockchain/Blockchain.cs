@@ -1,21 +1,20 @@
-﻿#define DEBUG
+﻿//#define DEBUG
 
 using System.Text;
-using VotingBlockchain.Interfaces;
+using VotingBlockchain.Abstract;
 
 namespace VotingBlockchain
 {
     public class Blockchain
     {
-        private INode Node { get; }
+        private ANode Node { get; }
 
         private DBAdapter _adapter;
 
-        public Blockchain(DBAdapter adapter, INode node)
+        public Blockchain(DBAdapter adapter, ANode node)
         {
             _adapter = adapter;
             Node = node;
-            var b = Block.CreateGenesisBlock(2);
         }
 
         public async Task<Block?> GetLatestBlockAsync(int electionId) 
@@ -109,7 +108,7 @@ namespace VotingBlockchain
             if (block is null) return false;
 
 #if DEBUG
-            Console.WriteLine("after: is not null");
+            Node.Output("after: is not null");
 #endif
 
             var resp = await GetLatestBlockAsync(block.ElectionId);
@@ -117,25 +116,25 @@ namespace VotingBlockchain
             if (resp is null) return false;
 
 #if DEBUG
-            Console.WriteLine("previ: is not null" );
+            Node.Output("previ: is not null" );
 #endif
 
             if (resp.ThisHash != block.PreviousHash) return false;
 
 #if DEBUG
-            Console.WriteLine("Validation: Prev this hash fine");
+            Node.Output("Validation: Prev this hash fine");
 #endif
 
             if (resp.Index + 1 != block.Index) return false;
 
 #if DEBUG
-            Console.WriteLine("Validation: Index fine");
+            Node.Output("Validation: Index fine");
 #endif
 
             if (block.ThisHash != block.CalculateHash()) return false;
 
 #if DEBUG
-            Console.WriteLine("Validation: Calc hash fine");
+            Node.Output("Validation: Calc hash fine");
 #endif
 
             return true;
@@ -155,23 +154,23 @@ namespace VotingBlockchain
                 Block afterBlock = blockChain[i];
 
 #if DEBUG
-                Console.WriteLine("after: " + afterBlock.PreviousHash);
-                Console.WriteLine("previ: " + previousBlock.ThisHash);
+                Node.Output("after: " + afterBlock.PreviousHash);
+                Node.Output("previ: " + previousBlock.ThisHash);
 #endif
                 if (previousBlock.Index + 1 != afterBlock.Index)
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Index fine");
+                Node.Output("Validation: Index fine");
 #endif
                 if (afterBlock.ThisHash != afterBlock.CalculateHash())
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Calc hash fine");
+                Node.Output("Validation: Calc hash fine");
 #endif
                 if (afterBlock.PreviousHash != previousBlock.ThisHash)
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Prev this hash fine");
+                Node.Output("Validation: Prev this hash fine");
 #endif
             }
             return true;
@@ -190,23 +189,23 @@ namespace VotingBlockchain
                 Block afterBlock = blockChain[i];
 
 #if DEBUG
-                Console.WriteLine("after: " + afterBlock.PreviousHash);
-                Console.WriteLine("previ: " + previousBlock.ThisHash);
+                Node.Output("after: " + afterBlock.PreviousHash);
+                Node.Output("previ: " + previousBlock.ThisHash);
 #endif
                 if (previousBlock.Index + 1 != afterBlock.Index)
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Index fine");
+                Node.Output("Validation: Index fine");
 #endif
                 if (afterBlock.ThisHash != afterBlock.CalculateHash())
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Calc hash fine");
+                Node.Output("Validation: Calc hash fine");
 #endif
                 if (afterBlock.PreviousHash != previousBlock.ThisHash)
                     return false;
 #if DEBUG
-                Console.WriteLine("Validation: Prev this hash fine");
+                Node.Output("Validation: Prev this hash fine");
 #endif
             }
             return true;
@@ -252,19 +251,19 @@ namespace VotingBlockchain
 
             if (blockchain is null || blockchain.Count <= 1) 
             {
-                Console.WriteLine("Election is empty.");
+                Node.Output("Election is empty.");
                 return;
             }
 
             if (options is null || options.Count == 0)
             {
-                Console.WriteLine("Can not upload options.");
+                Node.Output("Can not upload options.");
                 return;
             }
 
             if (elections is null || elections.Count == 0)
             {
-                Console.WriteLine("Can not upload elections.");
+                Node.Output("Can not upload elections.");
                 return;
             }
 
@@ -302,18 +301,18 @@ namespace VotingBlockchain
                 electionName ??= "Unknown election";
 
                 var title = $"Results for {electionName}\n";
-                Console.Write(title);
+                Node.Output(title);
                 fs.Write(Encoding.UTF8.GetBytes(title));
                 for (var i = 0; i < options.Count; i++)
                 {
                     var line = $"{options[i].OptionText} - {(resultsCounter.ContainsKey((i + 1).ToString()) ? resultsCounter[(i + 1).ToString()] : "0")}\n";
-                    Console.Write(line);
+                    Node.Output(line);
                     fs.Write(Encoding.UTF8.GetBytes(line));
                 }
             }
             catch (Exception ex) 
             {
-                Console.WriteLine(ex.Message);
+                Node.Output(ex.Message);
             }
         }
     }

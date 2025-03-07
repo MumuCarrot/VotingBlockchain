@@ -6,7 +6,7 @@ namespace VotingBlockchain
     {
         public override void HostServer() 
         {
-            Console.WriteLine("Hosting...");
+            this.Output("Server hosted");
         }
     }
 }
