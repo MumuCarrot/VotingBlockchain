@@ -9,76 +9,15 @@ namespace VotingBlockchain
     {
         private ANode Node { get; }
 
-        private DBAdapter _adapter;
-
-        public Blockchain(DBAdapter adapter, ANode node)
+        public Blockchain(ANode node)
         {
-            _adapter = adapter;
             Node = node;
-        }
-
-        public async Task<Block?> GetLatestBlockAsync(int electionId) 
-        { 
-            string query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id ORDER BY id DESC LIMIT 1;";
-            var parameters = new Dictionary<string, object>()
-            {
-                { "election_id", electionId }
-            };
-            
-            var dict = await _adapter.ExecuteQueryAsync(query, parameters);
-            if (dict is null || dict.Count == 0) return null;
-
-            return new Block(
-                (int)dict[0]["index"],
-                (int)dict[0]["election_id"],
-                (long)dict[0]["timestamp"],
-                (string)dict[0]["previous_hash"],
-                (string)dict[0]["this_hash"],
-                (int)dict[0]["nonce"],
-                (int)dict[0]["difficulty"],
-                (string)dict[0]["encrypted_data"],
-                (string)dict[0]["public_data"]
-            );
-        }
-
-        public async Task<List<Block>?> GetBlockChainAsync(int electionId, bool isDesc = false) 
-        {
-            string query = "";
-            if (!isDesc)
-                query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id;";
-            else
-                query = "SELECT * FROM block_chain_votes WHERE election_id = @election_id ORDER BY id DESC;";
-            var parameters = new Dictionary<string, object>()
-            {
-                { "election_id", electionId }
-            };
-
-            var dict = await _adapter.ExecuteQueryAsync(query, parameters);
-            if (dict is null || dict.Count == 0) return null;
-
-            List<Block> temp = [];
-            foreach (var d in dict) 
-            {
-                var b = new Block(
-                    (int)d["index"],
-                    (int)d["election_id"],
-                    (long)d["timestamp"],
-                    (string)d["previous_hash"],
-                    (string)d["this_hash"],
-                    (int)d["nonce"],
-                    (int)d["difficulty"],
-                    (string)d["encrypted_data"],
-                    (string)d["public_data"]
-                );
-                temp.Add(b);
-            }
-            return temp;
         }
 
         public async Task<Option?> GetUserVoteAsync(User user, int electionId, string privateKey)
         {
-            var blockchain = await GetBlockChainAsync(electionId, isDesc: true);
-            var options = await Node.Mempool.GetOptionsAsync(electionId);
+            var blockchain = await DBQuery.GetBlockChainAsync(electionId, isDesc: true);
+            var options = await DBQuery.GetOptionsAsync(electionId);
 
             if (blockchain is null || blockchain.Count <= 1) return null;
             if (options is null || options.Count <= 1) return null;
@@ -111,7 +50,7 @@ namespace VotingBlockchain
             Node.Output("after: is not null");
 #endif
 
-            var resp = await GetLatestBlockAsync(block.ElectionId);
+            var resp = await DBQuery.GetLatestBlockAsync(block.ElectionId);
 
             if (resp is null) return false;
 
@@ -142,7 +81,7 @@ namespace VotingBlockchain
 
         public async Task<bool> ValidateChainAsync(int electionId)
         {
-            var blockChain = await GetBlockChainAsync(electionId);
+            var blockChain = await DBQuery.GetBlockChainAsync(electionId);
 
             if (blockChain is null || blockChain.Count == 0) return false;
 
@@ -178,7 +117,7 @@ namespace VotingBlockchain
 
         public async Task<bool> ValidateChainAsync(Block newBlock)
         {
-            var blockChain = await GetBlockChainAsync(newBlock.ElectionId);
+            var blockChain = await DBQuery.GetBlockChainAsync(newBlock.ElectionId);
 
             if (blockChain is null || blockChain.Count == 0) return false;
 
@@ -213,7 +152,7 @@ namespace VotingBlockchain
 
         public async Task VoteAsync(int electionId, User user, int option)
         {
-            var resp = await GetLatestBlockAsync(electionId);
+            var resp = await DBQuery.GetLatestBlockAsync(electionId);
 
             if (resp is null) return;
 
@@ -226,28 +165,14 @@ namespace VotingBlockchain
 
             if (!Node.Mempool.RemoveFromInputMempool(block)) return;
 
-            string query = "INSERT INTO block_chain_votes (election_id, index, timestamp, previous_hash, this_hash, nonce, difficulty, encrypted_data, public_data) " +
-                           "VALUES (@election_id, @index, @timestamp, @previous_hash, @this_hash, @nonce, @difficulty, @encrypted_data, @public_data);";
-            var parameters = new Dictionary<string, object>()
-            {
-                { "election_id", block.ElectionId },
-                { "index", block.Index },
-                { "timestamp", block.Timestamp },
-                { "previous_hash", block.PreviousHash },
-                { "this_hash", block.ThisHash },
-                { "nonce", block.Nonce },
-                { "difficulty", block.Difficulty },
-                { "encrypted_data", block.EncryptedData },
-                { "public_data", block.PublicData }
-            };
-            await _adapter.ExecuteNonQueryAsync(query, parameters);
+            await DBQuery.AddBlockAsync(block);
         }
 
         public async Task GetElectionResults(int electionId) 
         {
-            var blockchain = await GetBlockChainAsync(electionId);
-            var options = await Node.Mempool.GetOptionsAsync(electionId);
-            var elections = await Node.Mempool.GetElectionsAsync();
+            var blockchain = await DBQuery.GetBlockChainAsync(electionId);
+            var options = await DBQuery.GetOptionsAsync(electionId);
+            var elections = await DBQuery.GetElectionsAsync();
 
             if (blockchain is null || blockchain.Count <= 1) 
             {

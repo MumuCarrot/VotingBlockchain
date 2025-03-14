@@ -13,7 +13,5 @@
 
         //Распределение информации по сети
         public void HostServer();
-
-        public UserDatabase UserDatabase { get; }
     }
 }

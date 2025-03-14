@@ -10,7 +10,7 @@ fullNode.SetOutput(Console.WriteLine);
 Miner miner = new Miner(fullNode);
 
 fullNode.HostServer();
-miner.Mine();
+miner.Start();
 
 while (true)
 {
@@ -20,12 +20,12 @@ while (true)
     Console.Write("Enter user username: ");
     username = Console.ReadLine() ?? "";
 
-    if (!(await fullNode.UserDatabase.UserExistAsync(username)))
+    if (!(await DBQuery.UserExistAsync(username)))
     {
         Console.WriteLine("User doesn`t exists");
         Console.Write("Enter user password: ");
         userPassword = Console.ReadLine() ?? "";
-        var keys = await fullNode.UserDatabase.RegisterAsync(username, userPassword) ?? throw new Exception("Keys is null");
+        var keys = await DBQuery.RegisterAsync(username, userPassword) ?? throw new Exception("Keys is null");
 
         if (keys.Count != 2) throw new Exception("Keys count != 2");
 
@@ -42,7 +42,7 @@ while (true)
         userPassword = Console.ReadLine() ?? "";
     }
 
-    User? user = await fullNode.UserDatabase.AuthenticateAsync(username, userPassword);
+    User? user = await DBQuery.AuthenticateAsync(username, userPassword);
 
     if (user != null)
     {
@@ -56,7 +56,7 @@ while (true)
             Console.WriteLine("Action list:\n1. Vote\n2. My votes\n3. Results\n4. Log out");
             var action = Console.ReadLine() ?? "";
 
-            var elections = await fullNode.Mempool.GetElectionsAsync();
+            var elections = await DBQuery.GetElectionsAsync();
             if (elections is null)
             {
                 Console.WriteLine("Elections not found");
@@ -79,7 +79,7 @@ while (true)
 
                         Console.WriteLine("Name: " + elections[indexOfElection].Name + " Start day: " + elections[indexOfElection].StartDate + " End day: " + elections[indexOfElection].EndDate + "\n");
                         Console.WriteLine("Uploadin variants for current election...");
-                        var options = await fullNode.Mempool.GetOptionsAsync(elections[indexOfElection].Id);
+                        var options = await DBQuery.GetOptionsAsync(elections[indexOfElection].Id);
                         if (options is null)
                         {
                             Console.WriteLine("Options not found");

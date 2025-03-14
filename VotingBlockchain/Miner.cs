@@ -7,7 +7,7 @@ using VotingBlockchain.Interfaces;
 
 namespace VotingBlockchain
 {
-    public class Miner: AMiner
+    public class Miner : AService
     {
         public INode Node { get; }
 
@@ -16,14 +16,14 @@ namespace VotingBlockchain
             Node = node;
         }
 
-        public override void Mine() 
+        public override void Start() 
         {
-            if (minerThread == null || minerThread.IsCompleted)
+            if (serviceTask == null || serviceTask.IsCompleted)
             {
-                isMining = true;
-                minerThread = new Task(async () =>
+                isRunning = true;
+                serviceTask = new Task(async () =>
                 {
-                    while (isMining)
+                    while (isRunning)
                     {
                         try
                         {
@@ -44,14 +44,14 @@ namespace VotingBlockchain
                         await Task.Delay(5000);
                     }
                 });
-                minerThread.Start();
+                serviceTask.Start();
             }
         }
 
-        public override void Rest() 
+        public override void Stop() 
         {
-            isMining = false;
-            minerThread?.Wait();
+            isRunning = false;
+            serviceTask?.Wait();
         }
 
         public Block SearchHash(Block block)

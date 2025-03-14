@@ -4,18 +4,20 @@ namespace VotingBlockchain.Abstract
 {
     public abstract class ANode : INode
     {
-        public Output _output;
+        private Output _output;
+        private List<AService> _services = [];
+
         public Mempool Mempool { get; }
         public Blockchain Blockchain { get; }
-        public UserDatabase UserDatabase { get; }
+        
 
         public ANode() 
         {
-            var dba = new DBAdapter();
+            Blockchain = new Blockchain(this);
+            Mempool = new Mempool();
+
             _output = new Output(Console.WriteLine);
-            Blockchain = new Blockchain(dba, this);
-            Mempool = new Mempool(dba);
-            UserDatabase = new UserDatabase(dba);
+            _services.Add(new ElectionService());
         }
 
         public void SetOutput(Action<string> action) 
