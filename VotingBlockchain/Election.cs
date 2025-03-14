@@ -9,5 +9,7 @@
         public long StartDate { get; set; } = 0;
 
         public long EndDate { get; set; } = 0;
+
+        public string Description { get; set; } = "";
     }
 }

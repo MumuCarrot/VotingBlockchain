@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace VotingBlockchain
+﻿namespace VotingBlockchain
 {
     public class Mempool
     {
@@ -25,7 +23,8 @@ namespace VotingBlockchain
                     Id = (int)i["id"],
                     Name = (string)i["name"],
                     StartDate = (long)i["startdate"],
-                    EndDate = (long)i["enddate"]
+                    EndDate = (long)i["enddate"],
+                    Description = (string)i["description"]
                 });
             }
             return elections;
