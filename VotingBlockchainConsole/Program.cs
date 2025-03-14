@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using VotingBlockchain;
+using VotingBlockchain.Datatypes;
+using VotingBlockchain.Services;
 
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;

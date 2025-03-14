@@ -4,8 +4,9 @@ using System.Text;
 using System.Security.Cryptography;
 using VotingBlockchain.Abstract;
 using VotingBlockchain.Interfaces;
+using VotingBlockchain.Datatypes;
 
-namespace VotingBlockchain
+namespace VotingBlockchain.Services
 {
     public class Miner : AService
     {

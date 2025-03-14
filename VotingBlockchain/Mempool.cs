@@ -1,4 +1,6 @@
-﻿namespace VotingBlockchain
+﻿using VotingBlockchain.Datatypes;
+
+namespace VotingBlockchain
 {
     public class Mempool
     {

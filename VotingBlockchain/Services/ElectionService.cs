@@ -1,6 +1,6 @@
 ﻿using VotingBlockchain.Abstract;
 
-namespace VotingBlockchain
+namespace VotingBlockchain.Services
 {
     public class ElectionService : AService
     {

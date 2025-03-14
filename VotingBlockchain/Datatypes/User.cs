@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace VotingBlockchain
+namespace VotingBlockchain.Datatypes
 {
     public class User
     {

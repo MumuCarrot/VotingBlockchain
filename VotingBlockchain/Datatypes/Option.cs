@@ -1,4 +1,4 @@
-﻿namespace VotingBlockchain
+﻿namespace VotingBlockchain.Datatypes
 {
     public class Option
     {

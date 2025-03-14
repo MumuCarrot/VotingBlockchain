@@ -2,6 +2,7 @@
 
 using System.Text;
 using VotingBlockchain.Abstract;
+using VotingBlockchain.Datatypes;
 
 namespace VotingBlockchain
 {
