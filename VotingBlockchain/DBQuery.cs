@@ -27,10 +27,31 @@ namespace VotingBlockchain
                     Name = (string)i["name"],
                     StartDate = (long)i["startdate"],
                     EndDate = (long)i["enddate"],
-                    Description = (string)i["description"]
+                    Description = (string)i["description"],
                 });
             }
             return elections;
+        }
+
+        public static async Task<Election?> GetElectionAsync(int electionId)
+        {
+            string query = "SELECT * FROM elections WHERE id = @electionId";
+            var parameters = new Dictionary<string, object>()
+            {
+                { "electionId", electionId }
+            };
+            var dict = await _adapter.ExecuteQueryAsync(query, parameters);
+
+            if (dict is null || dict.Count == 0) return null;
+
+            return new Election()
+            {
+                Id = (int)dict[0]["id"],
+                Name = (string)dict[0]["name"],
+                StartDate = (long)dict[0]["startdate"],
+                EndDate = (long)dict[0]["enddate"],
+                Description = (string)dict[0]["description"]
+            };
         }
 
         public static async Task<List<Option>?> GetOptionsAsync(int id)

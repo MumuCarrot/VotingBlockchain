@@ -153,6 +153,16 @@ namespace VotingBlockchain
 
         public async Task VoteAsync(int electionId, User user, int option)
         {
+            var election = await DBQuery.GetElectionAsync(electionId);
+
+            if (election is null) return;
+
+            if (election.EndDate < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            {
+                Node.Output("This election is closed.");
+                return;
+            }
+
             var resp = await DBQuery.GetLatestBlockAsync(electionId);
 
             if (resp is null) return;

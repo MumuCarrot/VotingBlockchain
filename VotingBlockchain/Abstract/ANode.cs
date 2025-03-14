@@ -17,7 +17,6 @@ namespace VotingBlockchain.Abstract
             Mempool = new Mempool();
 
             _output = new Output(Console.WriteLine);
-            _services.Add(new ElectionService());
         }
 
         public void SetOutput(Action<string> action) 
