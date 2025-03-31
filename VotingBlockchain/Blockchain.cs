@@ -179,11 +179,11 @@ namespace VotingBlockchain
             await DBQuery.AddBlockAsync(block);
         }
 
-        public async Task GetElectionResults(int electionId) 
+        public async Task GetElectionResults(int electionId, string? fileName = null) 
         {
             var blockchain = await DBQuery.GetBlockChainAsync(electionId);
             var options = await DBQuery.GetOptionsAsync(electionId);
-            var elections = await DBQuery.GetElectionsAsync();
+            var election = await DBQuery.GetElectionAsync(electionId);
 
             if (blockchain is null || blockchain.Count <= 1) 
             {
@@ -197,22 +197,32 @@ namespace VotingBlockchain
                 return;
             }
 
-            if (elections is null || elections.Count == 0)
+            if (election is null)
             {
-                Node.Output("Can not upload elections.");
+                Node.Output("Can not upload election.");
                 return;
             }
 
             // Key - Username | Value - Option
             var uniqueResults = new Dictionary<string, string>();
+            var uniqueRevote = new Dictionary<string, int>();
 
             foreach (var result in blockchain) 
             {
                 if (result.Index == 0) continue; // Skip genesis block
 
-                if (!uniqueResults.TryAdd(result.EncryptedData, result.PublicData))
+                if (uniqueRevote.ContainsKey(result.EncryptedData))
                 {
-                    uniqueResults[result.EncryptedData] = result.PublicData;
+                    if (uniqueRevote[result.EncryptedData] <= 3) 
+                    { 
+                        uniqueRevote[result.EncryptedData]++;
+                        uniqueResults[result.EncryptedData] = result.PublicData;
+                    }
+                }
+                else
+                {
+                    uniqueRevote.Add(result.EncryptedData, 1);
+                    uniqueResults.Add(result.EncryptedData, result.PublicData);
                 }
             }
 
@@ -232,8 +242,9 @@ namespace VotingBlockchain
 
             try
             {
-                using FileStream fs = new FileStream($"results_id{electionId}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.txt", FileMode.Create);
-                string? electionName = elections.Find(e => e.Id == electionId)?.Name;
+                string name = fileName ?? $"results_id{electionId}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}.txt";
+                using FileStream fs = new FileStream(name, FileMode.Create);
+                string? electionName = election.Name;
                 electionName ??= "Unknown election";
 
                 var title = $"Results for {electionName}\n";
