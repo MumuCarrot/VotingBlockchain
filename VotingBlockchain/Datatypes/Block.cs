@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace VotingBlockchain.Datatypes
 {
@@ -23,6 +24,7 @@ namespace VotingBlockchain.Datatypes
 
         public string PublicData { get; set; } = "";
 
+        [JsonConstructor]
         public Block(int index, int electionId, long timestamp, string previousHash, string thisHash, int nonce, int difficulty, string encryptedData, string publicData)
         {
             Index = index;

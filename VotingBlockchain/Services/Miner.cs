@@ -3,22 +3,47 @@
 using System.Text;
 using System.Security.Cryptography;
 using VotingBlockchain.Abstract;
-using VotingBlockchain.Interfaces;
 using VotingBlockchain.Datatypes;
+using System.Text.Json;
 
 namespace VotingBlockchain.Services
 {
     public class Miner : AService
     {
-        public INode Node { get; }
+        private static readonly HttpClient client = new HttpClient();
 
-        public Miner(INode node) 
-        { 
-            Node = node;
+        private static readonly string HostName = @"http://localhost:5000";
+
+        public async Task<Block?> TryGetData() 
+        {
+            string url = "http://localhost:5000/trygetdata";
+            HttpResponseMessage response = await client.GetAsync(url);
+            string json = await response.Content.ReadAsStringAsync();
+            try
+            {
+                var result = JsonSerializer.Deserialize<Block>(json);
+                return result;
+            }
+            catch { }
+            return null;
+        }
+
+        public async Task AddBlock(Block block)
+        {
+            Dictionary<string, string> data = new()
+            {
+                { "block", JsonSerializer.Serialize(block) }
+            };
+            string jsonData = JsonSerializer.Serialize(data);
+            StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            string url = "http://localhost:5000/addblock";
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string json = await response.Content.ReadAsStringAsync();
         }
 
         public override void Start() 
         {
+            Console.WriteLine("Miner is running on " + HostName);
             if (serviceTask == null || serviceTask.IsCompleted)
             {
                 isRunning = true;
@@ -28,13 +53,13 @@ namespace VotingBlockchain.Services
                     {
                         try
                         {
-                            var data = Node.Mempool.GetInputData();
+                            var data = await TryGetData();
 
-                            if (data is not null) 
-                            { 
+                            if (data is not null)
+                            {
                                 data = SearchHash(data);
 
-                                await Node.Blockchain.AddBlockAsync(data);
+                                await AddBlock(data);
                             }
                         }
                         catch (Exception ex)
