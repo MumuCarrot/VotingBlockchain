@@ -4,7 +4,7 @@ using VotingBlockchain.Datatypes;
 
 namespace VotingBlockchain
 {
-    public sealed partial class Client
+    public static partial class Client
     {
         private static readonly HttpClient client = new HttpClient();
 
@@ -82,11 +82,12 @@ namespace VotingBlockchain
             return result;
         }
 
-        public static async Task Vote(int electionId, string username, string publicKey, int option)
+        public static async Task Vote(int electionId, int userId, string username, string publicKey, int option)
         {
             Dictionary<string, string> data = new()
             {
                 { "electionid", electionId.ToString() },
+                { "userid", userId.ToString() },
                 { "username", username },
                 { "publickey", publicKey },
                 { "option", option.ToString() }
@@ -113,6 +114,24 @@ namespace VotingBlockchain
             HttpResponseMessage response = await client.PostAsync(url, content);
             string json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<Option?>(json);
+            return result;
+        }
+
+        public static async Task<bool> CanIVoteHere(int electionId, int userid)
+        {
+            string url = $"http://localhost:5000/canivotehere?electionid={electionId}&userid={userid}";
+            HttpResponseMessage response = await client.GetAsync(url);
+            string json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<bool>(json);
+            return result;
+        }
+
+        public static async Task<List<Election>?> GetVotedElections(int userId)
+        {
+            string url = $"http://localhost:5000/getvotedelections?voterid={userId}";
+            HttpResponseMessage response = await client.GetAsync(url);
+            string json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<Election>>(json);
             return result;
         }
     }

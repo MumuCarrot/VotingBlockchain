@@ -75,22 +75,27 @@ public class Program
                                 if (indexOfElection < 0 || indexOfElection >= elections.Count) throw new ArgumentException();
 
                                 Console.WriteLine("Name: " + elections[indexOfElection].Name + " Start day: " + elections[indexOfElection].StartDate + " End day: " + elections[indexOfElection].EndDate + "\n");
-                                Console.WriteLine("Uploadin variants for current election...");
-                                var options = await Client.GetOptions(elections[indexOfElection].Id);
-                                if (options is null)
-                                {
-                                    Console.WriteLine("Options not found");
-                                    continue;
+
+                                if (await Client.CanIVoteHere(elections[indexOfElection].Id, int.Parse(Client.User.Id))) 
+                                { 
+                                    Console.WriteLine("Uploadin variants for current election...");
+                                    var options = await Client.GetOptions(elections[indexOfElection].Id);
+                                    if (options is null)
+                                    {
+                                        Console.WriteLine("Options not found");
+                                        continue;
+                                    }
+                                    for (var i = 0; i < options.Count; i++)
+                                        Console.WriteLine((i + 1) + ". " + options[i].OptionText);
+
+                                    Console.Write("\nChoose one: ");
+                                    var indexOfOption = int.Parse(Console.ReadLine() ?? "") - 1;
+
+                                    if (indexOfOption < 0 || indexOfOption >= options.Count) throw new ArgumentException();
+
+                                    await Client.Vote(elections[indexOfElection].Id, int.Parse(Client.User.Id), Client.User.Username, Client.User.PublicKey, options[indexOfOption].Index);
                                 }
-                                for (var i = 0; i < options.Count; i++)
-                                    Console.WriteLine((i + 1) + ". " + options[i].OptionText);
-
-                                Console.Write("\nChoose one: ");
-                                var indexOfOption = int.Parse(Console.ReadLine() ?? "") - 1;
-
-                                if (indexOfOption < 0 || indexOfOption >= options.Count) throw new ArgumentException();
-
-                                await Client.Vote(elections[indexOfElection].Id, Client.User.Username, Client.User.PublicKey, options[indexOfOption].Index);
+                                else Console.WriteLine("You can not vote here!");
                             }
                             catch (ArgumentException)
                             {

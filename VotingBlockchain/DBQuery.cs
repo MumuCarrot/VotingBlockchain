@@ -60,7 +60,7 @@ namespace VotingBlockchain
 
                 public static async Task<List<Election>?> GetCurrentElectionsAsync(long unix)
                 {
-                    string query = "SELECT * FROM elections where startdate <= unix = @unix AND unix = @unix < enddate;";
+                    string query = "SELECT * FROM elections where startdate <= @unix AND @unix < enddate;";
                     var parameters = new Dictionary<string, object>()
                     {
                         { "unix", unix }
@@ -85,7 +85,7 @@ namespace VotingBlockchain
 
                 public static async Task<List<Election>?> GetCompletedElectionsAsync(long unix)
                 {
-                    string query = "SELECT * FROM elections WHERE enddate <= unix = @unix";
+                    string query = "SELECT * FROM elections WHERE enddate <= @unix";
                     var parameters = new Dictionary<string, object>()
                     {
                         { "unix", unix }
@@ -262,6 +262,77 @@ namespace VotingBlockchain
                         { "public_data", block.PublicData }
                     };
                     await _adapter.ExecuteNonQueryAsync(query, parameters);
+                }
+
+                public static async Task<int?> GetNCounterAsync(int userId, int electionId)
+                {
+                    string query = "SELECT voters.n_counter FROM voters WHERE voter_id = @voterid AND election_id = @electionid;";
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "electionid", electionId },
+                        { "voterid", userId }
+                    };
+                    var result = await _adapter.ExecuteScalarAsync(query, parameters);
+
+                    var i = (int?)result;
+
+                    return i;
+                }
+
+                public static async Task IncreaseNCounterAsync(int userId, int electionId)
+                {
+                    string query = "MERGE INTO voters AS v " +
+                                   "USING (SELECT @voterid AS voter_id, @electionid AS election_id) AS new_data " +
+                                   "ON v.election_id = new_data.election_id AND v.voter_id = new_data.voter_id " +
+                                   "WHEN MATCHED THEN " +
+                                       "UPDATE SET n_counter = v.n_counter + 1 " +
+                                   "WHEN NOT MATCHED THEN " +
+                                       "INSERT (voter_id, election_id, n_counter) " +
+                                       "VALUES (new_data.voter_id, new_data.election_id, 1);";
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "voterid", userId },
+                        { "electionid", electionId }
+                    };
+                    await _adapter.ExecuteNonQueryAsync(query, parameters);
+                }
+
+                public static async Task<int?> GetRevotesAsync(int electionId)
+                {
+                    string query = "SELECT elections.revote FROM elections WHERE id = @electionid;";
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "electionid", electionId }
+                    };
+                    var result = await _adapter.ExecuteScalarAsync(query, parameters);
+
+                    var i = (int?)result;
+
+                    return i;
+                }
+
+                public static async Task<List<Election>?> GetVotedElectionsAsync(int userId)
+                {
+                    string query = "SELECT e.* FROM elections e JOIN voters v ON e.id = v.election_id WHERE v.voter_id = @voterid;";
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "voterid", userId }
+                    };
+                    var result = await _adapter.ExecuteQueryAsync(query, parameters);
+
+                    var elections = new List<Election>();
+                    foreach (var i in result)
+                    {
+                        elections.Add(new Election()
+                        {
+                            Id = (int)i["id"],
+                            Name = (string)i["name"],
+                            StartDate = (long)i["startdate"],
+                            EndDate = (long)i["enddate"],
+                            Description = (string)i["description"],
+                        });
+                    }
+                    return elections;
                 }
             }
         }

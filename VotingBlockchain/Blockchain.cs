@@ -153,7 +153,7 @@ namespace VotingBlockchain
                 return true;
             }
 
-            public async Task VoteAsync(int electionId, string username, string publicKey, int option)
+            public async Task VoteAsync(int electionId, int userId, string username, string publicKey, int option)
             {
                 var election = await DBQuery.GetElectionAsync(electionId);
 
@@ -168,6 +168,8 @@ namespace VotingBlockchain
                 var resp = await DBQuery.GetLatestBlockAsync(electionId);
 
                 if (resp is null) return;
+
+                await DBQuery.IncreaseNCounterAsync(userId, electionId);
 
                 Node.Mempool.AddToInputMempool(new Block(resp.Index + 1, resp.ElectionId, resp.ThisHash, username, option.ToString(), publicKey));
             }
