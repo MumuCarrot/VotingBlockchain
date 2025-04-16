@@ -134,5 +134,33 @@ namespace VotingBlockchain
             var result = JsonSerializer.Deserialize<List<Election>>(json);
             return result;
         }
+
+        public static async Task<List<Block>?> GetBlocks(int electionId)
+        {
+            string url = $"http://localhost:5000/blocks?electionid={electionId}";
+            HttpResponseMessage response = await client.GetAsync(url);
+            string json = await response.Content.ReadAsStringAsync();
+            var result = JsonSerializer.Deserialize<List<Block>>(json);
+            return result;
+        }
+
+        public static async Task PostElection(string electionname, long startdate, long enddate, string description, int revote, string options)
+        {
+            Dictionary<string, string> data = new()
+            {
+                { "electionname", electionname },
+                { "startdate", startdate.ToString() },
+                { "enddate", enddate.ToString() },
+                { "description", description },
+                { "revote", revote.ToString() },
+                { "options", options }
+            };
+            string jsonData = JsonSerializer.Serialize(data);
+            StringContent content = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            string url = $"http://localhost:5000/postelection";
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string json = await response.Content.ReadAsStringAsync();
+            return;
+        }
     }
 }

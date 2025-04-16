@@ -14,6 +14,8 @@ namespace VotingBlockchain.Services
 
         private static readonly string HostName = @"http://localhost:5000";
 
+        private static string NowStr => "[" + DateTime.UtcNow + "] | ";
+
         public async Task<Block?> TryGetData() 
         {
             string url = "http://localhost:5000/trygetdata";
@@ -24,7 +26,10 @@ namespace VotingBlockchain.Services
                 var result = JsonSerializer.Deserialize<Block>(json);
                 return result;
             }
-            catch { }
+            catch 
+            {
+                Console.WriteLine(NowStr + "No data in mempool on paired node");
+            }
             return null;
         }
 
@@ -39,11 +44,12 @@ namespace VotingBlockchain.Services
             string url = "http://localhost:5000/addblock";
             HttpResponseMessage response = await client.PostAsync(url, content);
             string json = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(NowStr + "Block pushed to node");
         }
 
         public override void Start() 
         {
-            Console.WriteLine("Miner is running on " + HostName);
+            Console.WriteLine(NowStr + "Miner paired with node on " + HostName);
             if (serviceTask == null || serviceTask.IsCompleted)
             {
                 isRunning = true;

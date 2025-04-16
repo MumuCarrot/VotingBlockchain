@@ -91,6 +91,10 @@ namespace VotingBlockchain
                 {
                     await HandleGetVotedElections(request, response);
                 }
+                else if (request.HttpMethod == "GET" && request.Url?.AbsolutePath == "/blocks")
+                {
+                    await HandleGetBlocks(request, response);
+                }
                 else if (request.HttpMethod == "POST" && request.Url?.AbsolutePath == "/addblock")
                 {
                     await HandleAddBlock(request, response);
@@ -102,6 +106,10 @@ namespace VotingBlockchain
                 else if (request.HttpMethod == "POST" && request.Url?.AbsolutePath == "/uvote")
                 {
                     await HandleUserVote(request, response);
+                }
+                else if (request.HttpMethod == "POST" && request.Url?.AbsolutePath == "/postelection")
+                {
+                    await HandlePostElection(request, response);
                 }
                 else
                 {
@@ -167,10 +175,7 @@ namespace VotingBlockchain
             }
 
             var result = await Blockchain.DBQuery.UserExistAsync(userData["username"]);
-            if (result)
-                SendResponse(response, result, HttpStatusCode.OK);
-            else
-                SendResponse(response, "Invalid credentials", HttpStatusCode.Conflict);
+            SendResponse(response, result, HttpStatusCode.OK);
         }
 
         private static async Task HandleRegister(HttpListenerRequest request, HttpListenerResponse response)
@@ -314,6 +319,20 @@ namespace VotingBlockchain
                 SendResponse(response, "Invalid credentials", HttpStatusCode.Unauthorized);
         }
 
+        private async Task HandlePostElection(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            var data = await GetRequestParameters(request);
+            if (data == null)
+            {
+                SendResponse(response, "Invalid data", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            await Blockchain.DBQuery.PostElection(data["electionname"], long.Parse(data["startdate"]), 
+                                                  long.Parse(data["enddate"]), data["description"], 
+                                                  int.Parse(data["revote"]), data["options"]);
+        }
+
         private void HandleTryGetData(HttpListenerRequest request, HttpListenerResponse response)
         {
             var block = Mempool.GetInputData();
@@ -376,6 +395,23 @@ namespace VotingBlockchain
             }
 
             var result = await Blockchain.DBQuery.GetVotedElectionsAsync(int.Parse(data["voterid"]));
+
+            if (result is not null)
+                SendResponse(response, result, HttpStatusCode.OK);
+            else
+                SendResponse(response, "Invalid data", HttpStatusCode.Unauthorized);
+        }
+
+        private static async Task HandleGetBlocks(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            var data = await GetRequestParameters(request);
+            if (data == null)
+            {
+                SendResponse(response, "Invalid data", HttpStatusCode.BadRequest);
+                return;
+            }
+
+            var result = await Blockchain.DBQuery.GetBlockChainAsync(int.Parse(data["electionid"]));
 
             if (result is not null)
                 SendResponse(response, result, HttpStatusCode.OK);

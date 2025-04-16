@@ -334,6 +334,48 @@ namespace VotingBlockchain
                     }
                     return elections;
                 }
+
+                public static async Task PostElection(string @electionname, long @startdate, long @enddate, string @description, int @revote, string options) 
+                {
+                    string query = "WITH inserted_election AS ( " +
+                                       "INSERT INTO elections (name, startDate, endDate, description, revote) " +
+                                       "VALUES (@electionname, @startdate, @enddate, @description, @revote) " +
+                                       "RETURNING id " +
+                                       "), " +
+                                   "inserte_options AS ( " +
+                                       "INSERT INTO options (electionId, optionText) " +
+                                       "SELECT id, optionText " +
+                                       "FROM inserted_election, " +
+                                           "(VALUES";
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "@electionname", @electionname },
+                        { "@startdate", @startdate },
+                        { "@enddate", @enddate },
+                        { "@description", @description },
+                        { "@revote", @revote }
+                    };
+
+                    options = options.Replace("\r", "");
+                    string[] optionList = options.Split(['\n']);
+
+                    string queryOptions = "";
+                    for (var i = 0; i < optionList.Length; i++) 
+                    {
+                        queryOptions += $" (@option{i}),";
+                        parameters.Add($"@option{i}", optionList[i]);
+                    }
+                    queryOptions = queryOptions.TrimEnd(',');
+                    queryOptions += ") AS vals(optionText)) SELECT id FROM inserted_election;";
+                    query += queryOptions;
+
+                    var result = await _adapter.ExecuteScalarAsync(query, parameters);
+                    if (result is null)
+                        throw new Exception("Failed to insert election and options.");
+                    Block gen = Block.CreateGenesisBlock((int)result);
+                    await AddBlockAsync(gen);
+                }
             }
         }
     }

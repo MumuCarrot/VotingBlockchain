@@ -1,7 +1,5 @@
 ﻿//#define DEBUG
 
-using System.Text;
-using System.Text.Json;
 using VotingBlockchain.Datatypes;
 
 namespace VotingBlockchain
@@ -31,14 +29,12 @@ namespace VotingBlockchain
                     if (s is not null && s.Equals(username))
                     {
                         var index = int.Parse(b.PublicData);
-                        Option option = new Option()
-                        {
-                            OptionText = options[index - 1].OptionText,
-                            Index = options[index - 1].Index,
-                            ElectionId = options[index - 1].ElectionId
-                        };
 
-                        return option;
+                        foreach (var i in options) 
+                        { 
+                            if (i.Index == index)
+                                return i;
+                        }
                     }
                 }
 
