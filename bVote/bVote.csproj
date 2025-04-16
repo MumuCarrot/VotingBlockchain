@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\VotingBlockchain\VotingBlockchain\VotingBlockchain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="VotingBlockchain">
+      <HintPath>..\..\VotingBlockchain\VotingBlockchain\obj\Debug\net8.0\VotingBlockchain.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
