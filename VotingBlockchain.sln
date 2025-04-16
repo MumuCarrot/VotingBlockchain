@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Node", "Node\Node.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Miner", "Miner\Miner.csproj", "{8F2A2856-FE0A-47CC-BCC1-5038A6FF27E1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bVote", "..\bVote\bVote\bVote.csproj", "{AC57AF75-1C83-FE36-24B7-1B4C70613867}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{8F2A2856-FE0A-47CC-BCC1-5038A6FF27E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F2A2856-FE0A-47CC-BCC1-5038A6FF27E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F2A2856-FE0A-47CC-BCC1-5038A6FF27E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC57AF75-1C83-FE36-24B7-1B4C70613867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC57AF75-1C83-FE36-24B7-1B4C70613867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC57AF75-1C83-FE36-24B7-1B4C70613867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC57AF75-1C83-FE36-24B7-1B4C70613867}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
