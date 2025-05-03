@@ -12,6 +12,8 @@ namespace VotingBlockchain
 
         private Output _output;
         private List<AService> _services = [];
+        private CancellationTokenSource? _cts;
+        private Task? _serverTask;
 
         private Mempool Mempool { get; }
         private Blockchain BlockChain { get; }
@@ -34,20 +36,37 @@ namespace VotingBlockchain
             _output.Write(message);
         }
 
-        public async Task HostServer() 
+        public void StopHosting()
+        {
+            _cts?.Cancel();
+            _serverTask?.Wait();
+        }
+
+        public Task HostServer()
+        {
+            _cts = new CancellationTokenSource();
+            _serverTask = Task.Run(() => RunServerLoop(_cts.Token));
+            return Task.CompletedTask;
+        }
+
+        public async Task RunServerLoop(CancellationToken token)
         {
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add(hostName);
             listener.Start();
             Console.WriteLine("Node is running on " + hostName);
 
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 HttpListenerContext context = await listener.GetContextAsync();
                 HttpListenerRequest request = context.Request;
                 HttpListenerResponse response = context.Response;
 
-                if (request.HttpMethod == "GET" && request.Url?.AbsolutePath == "/register")
+                if (request.HttpMethod == "GET" && request.Url?.AbsolutePath == "/test")
+                {
+                    HandleTest(request, response);
+                }
+                else if (request.HttpMethod == "GET" && request.Url?.AbsolutePath == "/register")
                 {
                     await HandleRegister(request, response);
                 }
@@ -163,6 +182,11 @@ namespace VotingBlockchain
             }
 
             return parameters;
+        }
+
+        private void HandleTest(HttpListenerRequest request, HttpListenerResponse response)
+        {
+            SendResponse(response, "OK", HttpStatusCode.OK);
         }
 
         private async Task HandleUserExists(HttpListenerRequest request, HttpListenerResponse response)

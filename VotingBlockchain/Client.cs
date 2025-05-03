@@ -60,8 +60,15 @@ namespace VotingBlockchain
             string url = $"http://localhost:5000/cuelections?unix={unix}";
             HttpResponseMessage response = await client.GetAsync(url);
             string json = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<List<Election>?>(json);
-            return result;
+            try
+            {
+                var result = JsonSerializer.Deserialize<List<Election>?>(json);
+                return result;
+            }
+            catch (Exception ex) 
+            {
+                throw new Exception(json + Environment.NewLine + ex.Message);
+            }
         }
 
         public static async Task<List<Election>?> GetCompletedElections(long unix)

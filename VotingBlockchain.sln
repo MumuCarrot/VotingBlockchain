@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Miner", "Miner\Miner.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bVote", "bVote\bVote.csproj", "{9FE6B6D8-E3CB-43F8-9DDF-F4EDFFE01B10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlockchainVoteUnits", "BlockchainVoteUnits\BlockchainVoteUnits.csproj", "{4A0E2FF0-E017-444F-AB20-221AEE6D79CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{9FE6B6D8-E3CB-43F8-9DDF-F4EDFFE01B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FE6B6D8-E3CB-43F8-9DDF-F4EDFFE01B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FE6B6D8-E3CB-43F8-9DDF-F4EDFFE01B10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A0E2FF0-E017-444F-AB20-221AEE6D79CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A0E2FF0-E017-444F-AB20-221AEE6D79CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A0E2FF0-E017-444F-AB20-221AEE6D79CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A0E2FF0-E017-444F-AB20-221AEE6D79CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

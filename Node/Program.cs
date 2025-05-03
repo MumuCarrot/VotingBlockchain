@@ -9,6 +9,7 @@ namespace Node
             FullNode fullNode = new FullNode();
             fullNode.SetOutput(Console.WriteLine);
             await fullNode.HostServer();
+            Console.ReadLine();
         }
     }
 }
