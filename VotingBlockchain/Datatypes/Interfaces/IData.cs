@@ -1,4 +1,4 @@
-﻿namespace VotingBlockchain.Interfaces
+﻿namespace VotingBlockchain.Datatypes.Interfaces
 {
     public interface IData: ICloneable
     {

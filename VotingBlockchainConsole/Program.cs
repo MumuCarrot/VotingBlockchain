@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using VotingBlockchain;
+using VotingBlockchain.Client;
 
 public class Program
 {

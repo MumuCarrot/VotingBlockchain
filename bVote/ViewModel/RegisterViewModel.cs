@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
-using VotingBlockchain.Datatypes;
-using VotingBlockchain;
 using System.IO;
+using VotingBlockchain.Client;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace bVote.ViewModel
 {

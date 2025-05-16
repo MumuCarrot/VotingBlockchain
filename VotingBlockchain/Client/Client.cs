@@ -1,8 +1,8 @@
 ﻿using System.Text;
 using System.Text.Json;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Datatypes.Classes;
 
-namespace VotingBlockchain
+namespace VotingBlockchain.Client
 {
     public static partial class Client
     {

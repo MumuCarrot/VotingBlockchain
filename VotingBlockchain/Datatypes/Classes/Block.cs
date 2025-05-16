@@ -1,8 +1,9 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace VotingBlockchain.Datatypes
+namespace VotingBlockchain.Datatypes.Classes
 {
     public class Block
     {
@@ -38,28 +39,35 @@ namespace VotingBlockchain.Datatypes
             PublicData = publicData;
         }
 
-        public Block(int index, int electionId, string previousHash, string user, string option, string publicKey)
-            : this(user, option, publicKey)
+        public static Block CreateGenesisBlock(int electionId)
         {
-            Index = index;
-            PreviousHash = previousHash;
-            ElectionId = electionId;
+            var b = new Block(0, electionId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), "000000000000000000", "0", 0, 0, "0", "0");
+            b.ThisHash = b.CalculateHash();
+            return b;
         }
 
-        public Block(string user, string option, string publicKey)
+        protected static string GeneratePubliceData(params string[] data)
         {
-            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            EncryptedData = EncryptVote(user, publicKey);
-            PublicData = option;
+            return JsonSerializer.Serialize(data);
         }
 
-        protected static string EncryptVote(string data, string publicKey)
+        protected static string GeneratePrivateData(string data, string publicKey)
         {
             using RSA rsa = RSA.Create();
             rsa.KeySize = 2048;
             rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKey), out _);
             byte[] encryptedData = rsa.Encrypt(Encoding.UTF8.GetBytes(data), RSAEncryptionPadding.OaepSHA256);
             return Convert.ToBase64String(encryptedData);
+        }
+
+        public static Block CreatePublicBlock(int index, int electionId, string previousHash, string user, string option, string publicKey)
+        {
+            return new Block(index, electionId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), previousHash, "", 0, 3, "", GeneratePubliceData(option, user));
+        }
+
+        public static Block CreatePrivateBlock(int index, int electionId, string previousHash, string user, string option, string publicKey)
+        {
+            return new Block(index, electionId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), previousHash, "", 0, 3, GeneratePrivateData(user, publicKey), option);
         }
 
         public static string? TryDecryptVote(string encryptedData, string privateKey)
@@ -76,13 +84,6 @@ namespace VotingBlockchain.Datatypes
             {
                 return null;
             }
-        }
-
-        public static Block CreateGenesisBlock(int electionId)
-        {
-            var b = new Block(0, electionId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), "000000000000000000", "0", 0, 0, "0", "0");
-            b.ThisHash = b.CalculateHash();
-            return b;
         }
 
         public string CalculateHash()

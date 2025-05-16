@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace bVote.Views
 {

@@ -3,8 +3,8 @@ using bVote.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
-using VotingBlockchain;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Client;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace bVote.ViewModel
 {

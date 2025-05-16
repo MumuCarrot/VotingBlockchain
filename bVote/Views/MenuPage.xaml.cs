@@ -1,7 +1,7 @@
 ﻿using bVote.Services;
 using bVote.ViewModel;
 using System.Windows.Controls;
-using VotingBlockchain;
+using VotingBlockchain.Client;
 
 namespace bVote.Views
 {

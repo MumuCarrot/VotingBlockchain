@@ -1,4 +1,4 @@
-﻿namespace VotingBlockchain.Abstract
+﻿namespace VotingBlockchain.Datatypes.Abstract
 {
     public abstract class AService
     {

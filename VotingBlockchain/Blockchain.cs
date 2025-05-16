@@ -1,6 +1,7 @@
 ﻿//#define DEBUG
 
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Datatypes.Classes;
+using VotingBlockchain.Enums;
 
 namespace VotingBlockchain
 {
@@ -46,7 +47,7 @@ namespace VotingBlockchain
                 if (block is null) return false;
 
 #if DEBUG
-                Node.Output("after: is not null");
+                Node.Output("Recived block: is not null");
 #endif
 
                 var resp = await DBQuery.GetLatestBlockAsync(block.ElectionId);
@@ -54,7 +55,7 @@ namespace VotingBlockchain
                 if (resp is null) return false;
 
 #if DEBUG
-                Node.Output("previ: is not null");
+                Node.Output("Previous block: is not null");
 #endif
 
                 if (resp.ThisHash != block.PreviousHash) return false;
@@ -149,7 +150,7 @@ namespace VotingBlockchain
                 return true;
             }
 
-            public async Task VoteAsync(int electionId, int userId, string username, string publicKey, int option)
+            public async Task VoteAsync(int electionId, int userId, string username, string publicKey, int option, VotingPrivacyType privacyType = VotingPrivacyType.Public)
             {
                 var election = await DBQuery.GetElectionAsync(electionId);
 
@@ -167,7 +168,12 @@ namespace VotingBlockchain
 
                 await DBQuery.IncreaseNCounterAsync(userId, electionId);
 
-                Node.Mempool.AddToInputMempool(new Block(resp.Index + 1, resp.ElectionId, resp.ThisHash, username, option.ToString(), publicKey));
+                if (privacyType is VotingPrivacyType.Public)
+                    Node.Mempool.AddToInputMempool(Block.CreatePublicBlock(resp.Index + 1, resp.ElectionId, resp.ThisHash, username, option.ToString(), publicKey));
+                else if (privacyType is VotingPrivacyType.Private)
+                    Node.Mempool.AddToInputMempool(Block.CreatePrivateBlock(resp.Index + 1, resp.ElectionId, resp.ThisHash, username, option.ToString(), publicKey));
+                else
+                    Node.Output("Invalid privacy type.");
             }
 
             public async Task AddBlockAsync(Block block)

@@ -1,5 +1,5 @@
 ﻿using System.Text.RegularExpressions;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace VotingBlockchain
 {

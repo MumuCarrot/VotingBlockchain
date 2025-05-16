@@ -1,12 +1,12 @@
-﻿using VotingBlockchain.Interfaces;
+﻿using VotingBlockchain.Datatypes.Interfaces;
 
-namespace VotingBlockchain
+namespace VotingBlockchain.VotingDataOutput
 {
-    public class Output: IOutput
+    public class VotingDataOutput: IOutput
     {
         public Action<string> _action;
 
-        public Output(Action<string> action) 
+        public VotingDataOutput(Action<string> action) 
         {
             _action = action;
         }

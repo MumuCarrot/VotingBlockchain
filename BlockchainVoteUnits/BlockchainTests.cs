@@ -1,4 +1,4 @@
-﻿using VotingBlockchain;
+﻿using VotingBlockchain.Client;
 
 namespace BlockchainVoteUnits
 {

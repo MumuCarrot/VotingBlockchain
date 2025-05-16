@@ -3,9 +3,9 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using bVote.Pages;
 using System.Windows;
-using VotingBlockchain;
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using VotingBlockchain.Client;
 
 namespace bVote.ViewModel
 {

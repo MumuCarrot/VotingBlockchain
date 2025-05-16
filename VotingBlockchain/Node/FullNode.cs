@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using VotingBlockchain.Abstract;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Datatypes.Abstract;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace VotingBlockchain
 {
@@ -10,25 +10,25 @@ namespace VotingBlockchain
     {
         private string hostName = @"http://localhost:5000/";
 
-        private Output _output;
+        private VotingDataOutput.VotingDataOutput _output;
         private List<AService> _services = [];
         private CancellationTokenSource? _cts;
         private Task? _serverTask;
 
-        private Mempool Mempool { get; }
+        private Mempool.Mempool Mempool { get; }
         private Blockchain BlockChain { get; }
 
         public FullNode()
         {
             BlockChain = new Blockchain(this);
-            Mempool = new Mempool();
+            Mempool = new Mempool.Mempool();
 
-            _output = new Output(Console.WriteLine);
+            _output = new VotingDataOutput.VotingDataOutput(Console.WriteLine);
         }
 
         public void SetOutput(Action<string> action)
         {
-            _output = new Output(action);
+            _output = new VotingDataOutput.VotingDataOutput(action);
         }
 
         public void Output(string message)
@@ -359,9 +359,9 @@ namespace VotingBlockchain
 
         private void HandleTryGetData(HttpListenerRequest request, HttpListenerResponse response)
         {
-            var block = Mempool.GetInputData();
-            if (block is not null)
-                SendResponse(response, block, HttpStatusCode.OK);
+            var mempoolItem = Mempool.GetInputData();
+            if (mempoolItem is not null)
+                SendResponse(response, mempoolItem, HttpStatusCode.OK);
             else
                 SendResponse(response, "Invalid credentials", HttpStatusCode.Unauthorized);
         }

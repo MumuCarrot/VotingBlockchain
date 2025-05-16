@@ -2,8 +2,8 @@
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using VotingBlockchain;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Client;
+using VotingBlockchain.Datatypes.Classes;
 using WpfDrawing.Charts;
 
 namespace bVote

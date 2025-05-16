@@ -1,4 +1,4 @@
-﻿namespace VotingBlockchain.Interfaces
+﻿namespace VotingBlockchain.Datatypes.Interfaces
 {
     interface IOutput
     {

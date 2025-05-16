@@ -1,10 +1,11 @@
 ﻿#define DEBUG
 
-using System.Text;
 using System.Security.Cryptography;
-using VotingBlockchain.Abstract;
-using VotingBlockchain.Datatypes;
+using System.Text;
 using System.Text.Json;
+using VotingBlockchain.Datatypes.Abstract;
+using VotingBlockchain.Datatypes.Classes;
+using VotingBlockchain.Mempool;
 
 namespace VotingBlockchain.Services
 {
@@ -16,17 +17,17 @@ namespace VotingBlockchain.Services
 
         private static string NowStr => "[" + DateTime.UtcNow + "] | ";
 
-        public async Task<Block?> TryGetData() 
+        public async Task<MempoolItem?> TryGetData()
         {
             string url = "http://localhost:5000/trygetdata";
             HttpResponseMessage response = await client.GetAsync(url);
             string json = await response.Content.ReadAsStringAsync();
             try
             {
-                var result = JsonSerializer.Deserialize<Block>(json);
+                var result = JsonSerializer.Deserialize<MempoolItem>(json);
                 return result;
             }
-            catch 
+            catch
             {
                 Console.WriteLine(NowStr + "No data in mempool on paired node");
             }
@@ -47,7 +48,7 @@ namespace VotingBlockchain.Services
             Console.WriteLine(NowStr + "Block pushed to node");
         }
 
-        public override void Start() 
+        public override void Start()
         {
             Console.WriteLine(NowStr + "Miner paired with node on " + HostName);
             if (serviceTask == null || serviceTask.IsCompleted)
@@ -57,30 +58,30 @@ namespace VotingBlockchain.Services
                 {
                     while (isRunning)
                     {
+                        await Task.Delay(5000);
+
                         try
                         {
                             var data = await TryGetData();
 
-                            if (data is not null)
-                            {
-                                data = SearchHash(data);
+                            if (data is null) continue;
 
-                                await AddBlock(data);
-                            }
+                            if (data.preInfo is null) continue;
+
+                            await AddBlock(SearchHash(data.preInfo));
+                            
                         }
                         catch (Exception ex)
                         {
                             throw new Exception($"Mining error: {ex.Message}");
                         }
-
-                        await Task.Delay(5000);
                     }
                 });
                 serviceTask.Start();
             }
         }
 
-        public override void Stop() 
+        public override void Stop()
         {
             isRunning = false;
             serviceTask?.Wait();

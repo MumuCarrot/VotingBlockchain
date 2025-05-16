@@ -6,8 +6,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
-using VotingBlockchain;
-using VotingBlockchain.Datatypes;
+using VotingBlockchain.Client;
+using VotingBlockchain.Datatypes.Classes;
 
 namespace bVote.ViewModel
 {
